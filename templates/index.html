@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMarket - Mercado Dia a Dia</title>
+    <style>
+        body {
+            background-color: {{ '#121212' if tema == 'escuro' else '#f5f5f5' }};
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            color: {{ '#ffffff' if tema == 'escuro' else '#333333' }};
+        }
+        .app-card {
+            background: {{ '#1e1e1e' if tema == 'escuro' else '#ffffff' }};
+            border-radius: 12px;
+            width: 360px;
+            margin: 20px auto;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: #c0392b;
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .search-input {
+            width: 70%;
+            padding: 8px 10px;
+            border: 1px solid {{ '#333' if tema == 'escuro' else '#ffcccc' }};
+            background: {{ '#2a2a2a' if tema == 'escuro' else '#ffffff' }};
+            color: {{ '#ffffff' if tema == 'escuro' else '#333333' }};
+            border-radius: 20px;
+            outline: none;
+            font-size: 13px;
+        }
+        .btn-red {
+            background: #c0392b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .product-card {
+            border: 1px solid {{ '#333333' if tema == 'escuro' else '#ffcccc' }};
+            border-radius: 8px;
+            padding: 10px;
+            background: {{ '#1e1e1e' if tema == 'escuro' else '#ffffff' }};
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        dialog {
+            background: {{ '#1e1e1e' if tema == 'escuro' else '#ffffff' }};
+            color: {{ '#ffffff' if tema == 'escuro' else '#333333' }};
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid {{ '#333333' if tema == 'escuro' else '#ffcccc' }};
+            box-shadow: 0px 0px 20px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 280px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header">
+        {% if pagina == 'inicio' %}
+            <span>⚙️ Config</span>
+            <span style="font-weight: bold;">⭐ SmartMarket 📱</span>
+            <a href="/?tema={{ 'escuro' if tema == 'claro' else 'claro' }}">{{ '🌙 Escuro' if tema == 'claro' else '☀️ Claro' }}</a>
+        {% elif pagina == 'detalhes' %}
+            <a href="/?tema={{ tema }}" style="font-weight: bold;">← Voltar</a>
+            <a href="/produto/{{ id_prod }}?tema={{ 'escuro' if tema == 'claro' else 'claro' }}">{{ '🌙 Escuro' if tema == 'claro' else '☀️ Claro' }}</a>
+        {% else %}
+            <a href="/?tema={{ tema }}" style="font-weight: bold;">← Voltar</a>
+            <a href="/carrinho?tema={{ 'escuro' if tema == 'claro' else 'claro' }}">{{ '🌙 Escuro' if tema == 'claro' else '☀️ Claro' }}</a>
+        {% endif %}
+    </div>
+
+    <div class="content">
+        {% if pagina == 'inicio' %}
+            <h1 style="color: #c0392b; margin: 0 0 5px 0; text-align: center; font-size: 22px;">⭐ Mercado Dia a Dia</h1>
+            <p style="color: {{ '#aaa' if tema == 'escuro' else '#666' }}; font-size: 12px; text-align: center; margin-bottom: 15px;">Economia garantida com comparador de preços!</p>
+
+            <form action="/" method="GET" style="margin-bottom: 15px; display: flex; gap: 5px; justify-content: center;">
+                <input type="hidden" name="tema" value="{{ tema }}">
+                <input type="text" name="q" value="{{ termo_busca }}" placeholder="🔍 Pesquisar produto..." class="search-input">
+                <button type="submit" class="btn-red">Ir</button>
+            </form>
+
+            <div style="background: {{ '#332712' if tema == 'escuro' else '#fdebd0' }}; padding: 10px 15px; border-radius: 8px; border: 1px solid {{ '#7d6608' if tema == 'escuro' else '#f8c471' }}; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span style="font-size: 13px; font-weight: bold; color: {{ '#f1c40f' if tema == 'escuro' else '#b9770e' }};">🛒 Lista: {{ carrinho|length }} item(ns)</span>
+                <a href="/carrinho?tema={{ tema }}" style="color: {{ '#f39c12' if tema == 'escuro' else '#d35400' }}; font-weight: bold; text-decoration: none; font-size: 12px;">Ver Total ➔</a>
+            </div>
+
+            <h3 style="font-size: 14px; margin-bottom: 10px;">⭐ Produtos em Destaque:</h3>
+            <div class="grid">
+                {% for id_p, p in produtos.items() %}
+                    <a href="/produto/{{ id_p }}?tema={{ tema }}" style="text-decoration: none; color: inherit;">
+                        <div class="product-card">
+                            <div style="font-size: 38px; margin: 5px 0;">{{ p.icone }}</div>
+                            <p style="font-size: 12px; font-weight: bold; margin: 6px 0 4px 0;">{{ p.nome }}</p>
+                            <span style="color: #e74c3c; font-weight: bold; font-size: 13px;">R$ {{ "%.2f"|format(p.preco) }}</span>
+                            <div style="font-size: 10px; color: #ff6b6b; margin-top: 3px;">⭐ {{ p.comparativo.split('(')[0] }}</div>
+                        </div>
+                    </a>
+                {% else %}
+                    <p style="grid-column: span 2; color: gray; font-size: 13px; text-align: center;">Nenhum produto encontrado.</p>
+                {% endfor %}
+            </div>
+
+            <br>
+            <button onclick="document.getElementById('modalOferta').showModal()" style="background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 13px;">
+                🔥 Ver Oferta Especial (Modal)
+            </button>
+
+        {% elif pagina == 'detalhes' %}
+            <div style="text-align: center;">
+                <h2 style="color: #c0392b; margin: 0 0 5px 0; font-size: 20px;">{{ produto.nome }}</h2>
+                <div style="font-size: 64px; margin: 15px 0;">{{ produto.icone }}</div>
+                
+                <h1 style="color: #27ae60; margin: 0 0 5px 0; font-size: 26px;">R$ {{ "%.2f"|format(produto.preco) }}</h1>
+                
+                <div style="background: {{ '#332712' if tema == 'escuro' else '#fef9e7' }}; padding: 8px; border-radius: 6px; border: 1px solid {{ '#7d6608' if tema == 'escuro' else '#f9e79f' }}; margin: 10px 0; font-size: 12px; color: {{ '#f1c40f' if tema == 'escuro' else '#b7950b' }}; font-weight: bold;">
+                    {{ produto.comparativo }}
+                </div>
+
+                <p style="color: {{ '#aaa' if tema == 'escuro' else '#7f8c8d' }}; font-size: 13px; margin-bottom: 10px;">📍 <b>{{ produto.local }}</b></p>
+                
+                <div style="background: {{ '#4a1515' if tema == 'escuro' else '#fadbd8' }}; padding: 10px; border-radius: 6px; border: 1px solid {{ '#922b21' if tema == 'escuro' else '#f5b7b1' }}; margin-bottom: 20px; font-size: 13px; color: {{ '#f5b7b1' if tema == 'escuro' else '#922b21' }}; font-weight: bold;">
+                    {{ produto.alergicos }}
+                </div>
+
+                <a href="/adicionar/{{ id_prod }}?tema={{ tema }}" style="background: #c0392b; color: white; padding: 12px; text-decoration: none; border-radius: 6px; font-weight: bold; display: block; font-size: 14px;">🛒 Adicionar à Lista de Compras</a>
+            </div>
+
+        {% elif pagina == 'carrinho' %}
+            <div style="text-align: center;">
+                <h2 style="color: #c0392b; margin-top: 0;">🛒 Lista de Compras Inteligente</h2>
+                
+                <ul style="list-style-type: none; padding: 0; max-height: 180px; overflow-y: auto; margin: 15px 0;">
+                    {% for item in carrinho %}
+                        <li style="margin-bottom: 8px; border-bottom: 1px solid {{ '#333' if tema == 'escuro' else '#eee' }}; padding-bottom: 5px; text-align: left; font-size: 13px;">
+                            <b>{{ item.icone }} {{ item.nome }}</b> - R$ {{ "%.2f"|format(item.preco) }} 
+                            <br><span style="font-size: 11px; color: {{ '#aaa' if tema == 'escuro' else 'gray' }};">📍 {{ item.local }}</span>
+                        </li>
+                    {% else %}
+                        <p style="color: {{ '#aaa' if tema == 'escuro' else 'gray' }}; font-size: 13px;">Sua lista está vazia.</p>
+                    {% endfor %}
+                </ul>
+                
+                <hr style="border: 0; border-top: 1px solid {{ '#333' if tema == 'escuro' else '#ddd' }}; margin: 15px 0;">
+                <h3 style="margin: 5px 0;">Total: R$ {{ "%.2f"|format(total) }}</h3>
+                <br>
+                <a href="/limpar?tema={{ tema }}" style="color: #e74c3c; text-decoration: none; font-size: 12px;">Esvaziar Lista</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<dialog id="modalOferta">
+    <h3 style="color: #c0392b; margin-top: 0;">⭐ Super Promoção!</h3>
+    <p style="font-size: 14px;">Leve 2 pacotes de Arroz por R$ 38,00!</p>
+    <p style="font-size: 12px; color: {{ '#aaa' if tema == 'escuro' else '#7f8c8d' }};">📍 Corredor 3, Prateleira 2</p>
+    <br>
+    <button onclick="document.getElementById('modalOferta').close()" style="background: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px;">
+        Fechar [X]
+    </button>
+</dialog>
+
+</body>
+</html>
